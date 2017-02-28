@@ -46,7 +46,20 @@ def custom_score(game, player):
     """
 
     # Score function 1 - # moves remaining
-    return float(len(game.get_legal_moves()))
+    #return float(len(game.get_legal_moves()))
+
+    # Have we won the game?
+    if game.is_winner(player):
+        return float("inf")
+
+    # Do we even have moves to play?
+    if game.is_loser(player):
+        return float("-inf")
+
+    # We have moves to play. How many more than our opponent?
+    player_moves_left = len(game.get_legal_moves(player))
+    opponent_moves_left = len(game.get_legal_moves(game.get_opponent(player)))
+    return float(player_moves_left - opponent_moves_left)
 
 
 class CustomPlayer:
@@ -141,26 +154,29 @@ class CustomPlayer:
         # here in order to avoid timeout. The try/except block will
         # automatically catch the exception raised by the search method
         # when the timer gets close to expiring
-        depth = 1 if self.iterative else 1
+        depth = 1
         while(depth < 8 and self.time_left() > 100):
             try:
-                score,best_move =  self.minimax(game,depth)
+                if self.method=='minimax':
+                    score,best_move =  self.minimax(game,depth)
+                else:
+                    score,best_move =  self.alphabeta(game,depth)
                 depth += 1
                 if(not self.iterative):
                     return best_move
             except TimeoutError:
                 return best_move
         '''
-        Unfortunately won't pass the tests because game.count() is maintained
-        as a state variable and doesn't get propagated by the thread
+        #Unfortunately won't pass the tests because game.count() is maintained
+        #as a state variable and doesn't get propagated by the thread
 
         q = Queue()
 
         depth = 1
         while(depth < 8 and self.time_left() > 100):
-            print("Time Remaining:{} Depth:{}".format(self.time_left(),depth))
 
-            p = Process(target=self._get_minimax_move,args=(game.copy(),depth,q,depth %2 == 1))
+
+            p = Process(target=self._get_minimax_move,args=(game,depth,q,depth %2 == 1))
             p.start()
             p.join(self.time_left())
 
@@ -168,9 +184,7 @@ class CustomPlayer:
                 results = q.get()
                 if(not q.empty()):
                     best_move = results[1]
-                    print("Found move {} at depth {}".format(best_move,depth))
             except Empty:
-                print("Timeout")
                 return best_move
 
             if(p.is_alive()):
@@ -180,14 +194,18 @@ class CustomPlayer:
             depth += 1
             if(not self.iterative):
                 return best_move
-
         '''
+
         # Return the best move from the last completed search iteration
         return best_move
 
     def _get_minimax_move(self,game,depth, queue,maximizing_player):
         try:
-            score,move =  self.minimax(game,depth,maximizing_player)
+            if self.method=='minimax':
+                score,move =  self.minimax(game,depth)
+            else:
+                score,move =  self.alphabeta(game,depth)
+
             queue.put([score,move])
         except TimeoutError:
             print("Timeout")

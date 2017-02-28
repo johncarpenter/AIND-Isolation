@@ -7,7 +7,15 @@ You must test your agent's strength against a set of agents with known
 relative strength using tournament.py and include the results in your report.
 """
 import random
+import time
 
+from multiprocessing import Process,Queue,TimeoutError
+from queue import Empty
+from GameNode import GameNode, score_tree, score_tree_ab
+
+
+#Debugging
+import pdb
 
 class Timeout(Exception):
     """Subclass base exception for code clarity."""
@@ -37,8 +45,8 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
 
-    # TODO: finish this function!
-    raise NotImplementedError
+    # Score function 1 - # moves remaining
+    return float(len(game.get_legal_moves()))
 
 
 class CustomPlayer:
@@ -117,26 +125,75 @@ class CustomPlayer:
         """
 
         self.time_left = time_left
-
-        # TODO: finish this function!
-
         # Perform any required initializations, including selecting an initial
         # move from the game board (i.e., an opening book), or returning
         # immediately if there are no legal moves
 
-        try:
-            # The search method call (alpha beta or minimax) should happen in
-            # here in order to avoid timeout. The try/except block will
-            # automatically catch the exception raised by the search method
-            # when the timer gets close to expiring
-            pass
+        if not legal_moves or time_left() <= 0:
+            return (-1, -1)
 
-        except Timeout:
-            # Handle any actions required at timeout, if necessary
-            pass
+        # TODO: initial opening book
+        opening_move = random.choice(legal_moves)
 
+        best_move = opening_move
+
+        # The search method call (alpha beta or minimax) should happen in
+        # here in order to avoid timeout. The try/except block will
+        # automatically catch the exception raised by the search method
+        # when the timer gets close to expiring
+        depth = 1 if self.iterative else 1
+        while(depth < 8 and self.time_left() > 100):
+            try:
+                score,best_move =  self.minimax(game,depth)
+                depth += 1
+                if(not self.iterative):
+                    return best_move
+            except TimeoutError:
+                return best_move
+        '''
+        Unfortunately won't pass the tests because game.count() is maintained
+        as a state variable and doesn't get propagated by the thread
+
+        q = Queue()
+
+        depth = 1
+        while(depth < 8 and self.time_left() > 100):
+            print("Time Remaining:{} Depth:{}".format(self.time_left(),depth))
+
+            p = Process(target=self._get_minimax_move,args=(game.copy(),depth,q,depth %2 == 1))
+            p.start()
+            p.join(self.time_left())
+
+            try:
+                results = q.get()
+                if(not q.empty()):
+                    best_move = results[1]
+                    print("Found move {} at depth {}".format(best_move,depth))
+            except Empty:
+                print("Timeout")
+                return best_move
+
+            if(p.is_alive()):
+                p.terminate()
+                p.join()
+
+            depth += 1
+            if(not self.iterative):
+                return best_move
+
+        '''
         # Return the best move from the last completed search iteration
-        raise NotImplementedError
+        return best_move
+
+    def _get_minimax_move(self,game,depth, queue,maximizing_player):
+        try:
+            score,move =  self.minimax(game,depth,maximizing_player)
+            queue.put([score,move])
+        except TimeoutError:
+            print("Timeout")
+            queue.put([])
+
+
 
     def minimax(self, game, depth, maximizing_player=True):
         """Implement the minimax search algorithm as described in the lectures.
@@ -172,8 +229,15 @@ class CustomPlayer:
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        # Create root node and populate initial child nodes
+        root = GameNode(game,(0,0),maximizing_player)
+
+        # Build scoring tree
+        root = score_tree(root,self,depth=1,max_depth=depth)
+
+        move = root.get_best_move()
+
+        return root.score, move
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf"), maximizing_player=True):
         """Implement minimax search with alpha-beta pruning as described in the
@@ -216,5 +280,13 @@ class CustomPlayer:
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        # Create root node and populate initial child nodes
+        root = GameNode(game,(0,0),maximizing_player)
+
+        # Build scoring tree
+        root = score_tree_ab(root,self,alpha=float("-inf"), beta=float("inf"),depth=1,max_depth=depth)
+
+        move = root.get_best_move()
+
+
+        return root.score, move

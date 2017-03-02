@@ -95,7 +95,7 @@ As expected, the results from the first heuristic performed worse than the \text
 
 The second heuristic was identical to the \texttt{\detokenize{ID_Improved}} model. We ran this model to demonstrate
 some of the variability in the win \%. Even within the tests in this document we see the range of win \% from the \texttt{\detokenize{ID_Improved}}
-vary between 82\% and 90\%.
+vary between 82\% and 90\%.\newline
 \textbf{Results}\newline
 \begin{verbatim}
   *************************
@@ -251,8 +251,6 @@ The model typically averaged 5-6\% higher win percentage although that is still 
   Playing Matches:
   ----------
     Match 1:   Student   vs   Random    	Result: 16 to 4
-  tournament.py:100: UserWarning: One or more agents lost a match this round due to timeout. The get_move() function must return before time_left() reaches 0 ms. You will need to leave some time for the function to return, and may need to increase this margin to avoid timeouts during  tournament play.
-    warnings.warn(TIMEOUT_WARNING)
     Match 2:   Student   vs   MM_Null   	Result: 18 to 2
     Match 3:   Student   vs   MM_Open   	Result: 16 to 4
     Match 4:   Student   vs MM_Improved 	Result: 18 to 2

@@ -1,3 +1,7 @@
+class Timeout(Exception):
+    """Subclass base exception for code clarity."""
+    pass
+
 class GameNode:
     """
     Class GameNode
@@ -86,6 +90,9 @@ class GameNode:
 
 def score_tree_ab( node, player, alpha=float("-inf"), beta=float("inf"), depth=1, max_depth=3):
 
+    if(player.time_left() < player.TIMER_THRESHOLD):
+        raise Timeout()
+
     legal_moves = []
 
     if(depth <= max_depth):
@@ -117,6 +124,10 @@ def score_tree_ab( node, player, alpha=float("-inf"), beta=float("inf"), depth=1
         return node
 
 def score_tree( node, player,  depth=1, max_depth=3):
+
+    if(player.time_left() < player.TIMER_THRESHOLD):
+        raise Timeout()
+
 
     if(depth <= max_depth):
         node.populate_children()

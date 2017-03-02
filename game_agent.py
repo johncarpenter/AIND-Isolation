@@ -11,15 +11,12 @@ import time
 
 from multiprocessing import Process,Queue,TimeoutError
 from queue import Empty
-from GameNode import GameNode, score_tree, score_tree_ab
-
+from GameNode import GameNode, score_tree, score_tree_ab,Timeout
+from collections import Counter
 
 #Debugging
 import pdb
 
-class Timeout(Exception):
-    """Subclass base exception for code clarity."""
-    pass
 
 
 def custom_score(game, player):
@@ -45,8 +42,6 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
 
-    # Score function 1 - # moves remaining
-    #return float(len(game.get_legal_moves()))
 
     # Have we won the game?
     if game.is_winner(player):
@@ -56,10 +51,32 @@ def custom_score(game, player):
     if game.is_loser(player):
         return float("-inf")
 
+    opponent = game.get_opponent(player)
+
     # We have moves to play. How many more than our opponent?
     player_moves_left = len(game.get_legal_moves(player))
-    opponent_moves_left = len(game.get_legal_moves(game.get_opponent(player)))
-    return float(player_moves_left - opponent_moves_left)
+    opponent_moves_left = len(game.get_legal_moves(opponent))
+
+
+    # heuristic function 1 - # moves remaining
+    #return float(len(game.get_legal_moves()))
+
+    # heuristic function 2 - # different remaining
+    #return float(player_moves_left) - float(opponent_moves_left)
+
+    # heuristic function 3 - # based Warnsdorf's rule
+    #if(player_moves_left >= 2):
+    #    return 8 - float(player_moves_left)
+    #else:
+    #    return -1
+    # https://en.wikipedia.org/wiki/Knight's_tour#Warnsdorf.27s_rule
+
+    # heuristic function 4 - # based Warnsdorf's rule 2
+    #return (8 - float(player_moves_left)) - (8 - float(opponent_moves_left))
+    # https://en.wikipedia.org/wiki/Knight's_tour#Warnsdorf.27s_rule
+
+
+    return float(player_moves_left) - 2*float(opponent_moves_left)
 
 
 class CustomPlayer:
@@ -93,13 +110,24 @@ class CustomPlayer:
     """
 
     def __init__(self, search_depth=3, score_fn=custom_score,
-                 iterative=True, method='minimax', timeout=10.):
+                 iterative=True, method='minimax', timeout=50.):
         self.search_depth = search_depth
         self.iterative = iterative
         self.score = score_fn
         self.method = method
         self.time_left = None
         self.TIMER_THRESHOLD = timeout
+        self.metrics = Counter()
+
+    def dump_metrics(self):
+        if(self.iterative):
+            searches = self.metrics["searches"]
+            full = self.metrics["full-depth"]
+            percentage = float(full/searches)*100
+            print("Full-Depth Searches: {:.0f}%".format(percentage))
+        #for key, value in self.metrics.most_common():
+        #    print("{} : {}".format(key,value))
+        self.metrics = Counter()
 
     def get_move(self, game, legal_moves, time_left):
         """Search for the best move from the available legal moves and return a
@@ -145,7 +173,7 @@ class CustomPlayer:
         if not legal_moves or time_left() <= 0:
             return (-1, -1)
 
-        # TODO: initial opening book
+        # TODO: initial opening book?
         opening_move = random.choice(legal_moves)
 
         best_move = opening_move
@@ -153,64 +181,34 @@ class CustomPlayer:
         # The search method call (alpha beta or minimax) should happen in
         # here in order to avoid timeout. The try/except block will
         # automatically catch the exception raised by the search method
-        # when the timer gets close to expiring
+        # when the timer gets close to expiring\
+        score=0
         depth = 1
-        while(depth < 8 and self.time_left() > 100):
+        self.metrics["searches"] += 1
+        while(depth < len(game.get_blank_spaces()) and  self.time_left() > self.TIMER_THRESHOLD):
             try:
+                start_time = time.time()
                 if self.method=='minimax':
                     score,best_move =  self.minimax(game,depth)
                 else:
                     score,best_move =  self.alphabeta(game,depth)
-                depth += 1
+
                 if(not self.iterative):
                     return best_move
-            except TimeoutError:
-                return best_move
-        '''
-        #Unfortunately won't pass the tests because game.count() is maintained
-        #as a state variable and doesn't get propagated by the thread
 
-        q = Queue()
+                if(score == float("inf") or score == float("-inf")):
+                    self.metrics["full-depth"] += 1
+                    return best_move
 
-        depth = 1
-        while(depth < 8 and self.time_left() > 100):
+                depth += 1
+                #print("Iteration time: {:.4f} Left:{}".format(time.time() - start_time, self.time_left()))
 
-
-            p = Process(target=self._get_minimax_move,args=(game,depth,q,depth %2 == 1))
-            p.start()
-            p.join(self.time_left())
-
-            try:
-                results = q.get()
-                if(not q.empty()):
-                    best_move = results[1]
-            except Empty:
-                return best_move
-
-            if(p.is_alive()):
-                p.terminate()
-                p.join()
-
-            depth += 1
-            if(not self.iterative):
-                return best_move
-        '''
+            except Timeout:
+                self.metrics["timeout"] += 1
+                pass
 
         # Return the best move from the last completed search iteration
         return best_move
-
-    def _get_minimax_move(self,game,depth, queue,maximizing_player):
-        try:
-            if self.method=='minimax':
-                score,move =  self.minimax(game,depth)
-            else:
-                score,move =  self.alphabeta(game,depth)
-
-            queue.put([score,move])
-        except TimeoutError:
-            print("Timeout")
-            queue.put([])
-
 
 
     def minimax(self, game, depth, maximizing_player=True):
@@ -244,14 +242,15 @@ class CustomPlayer:
                 to pass the project unit tests; you cannot call any other
                 evaluation function directly.
         """
-        if self.time_left() < self.TIMER_THRESHOLD:
-            raise Timeout()
 
         # Create root node and populate initial child nodes
         root = GameNode(game,(0,0),maximizing_player)
 
         # Build scoring tree
-        root = score_tree(root,self,depth=1,max_depth=depth)
+        try:
+            root = score_tree(root,self,depth=1,max_depth=depth)
+        except Timeout:
+            raise Timeout()
 
         move = root.get_best_move()
 
@@ -295,14 +294,15 @@ class CustomPlayer:
                 to pass the project unit tests; you cannot call any other
                 evaluation function directly.
         """
-        if self.time_left() < self.TIMER_THRESHOLD:
-            raise Timeout()
 
         # Create root node and populate initial child nodes
         root = GameNode(game,(0,0),maximizing_player)
 
         # Build scoring tree
-        root = score_tree_ab(root,self,alpha=float("-inf"), beta=float("inf"),depth=1,max_depth=depth)
+        try:
+            root = score_tree_ab(root,self,alpha=float("-inf"), beta=float("inf"),depth=1,max_depth=depth)
+        except Timeout:
+            raise Timeout()
 
         move = root.get_best_move()
 

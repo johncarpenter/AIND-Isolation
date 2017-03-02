@@ -126,6 +126,12 @@ def play_round(agents, num_matches):
                 counts[p1] += score_1
                 counts[p2] += score_2
                 total += score_1 + score_2
+                '''
+                if("dump_metrics" in dir(p1)):
+                    p1.dump_metrics()
+                if("dump_metrics" in dir(p2)):
+                    p2.dump_metrics()
+                '''
 
         wins += counts[agent_1.player]
 

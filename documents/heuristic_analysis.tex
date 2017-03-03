@@ -264,4 +264,28 @@ The model typically averaged 5-6\% higher win percentage although that is still 
   Student             87.14%
 \end{verbatim}
 
+\subsection{Recommendations}
+
+The game playing agent was successful in competing in the simulated tournament against
+a small variety of simple opponents. However competing against a stronger opponent such as
+the \texttt{\detokenize{ID_Improved}} model the results are not as conclusive. Here are
+some recommendations that would improve the strength of the game agent model.\newline
+\begin{enumerate}
+\item Improve the speed of the \verb|get_move| function. The speed of this function determines
+the depth to which the algorithm can search. Through a combination of method profiling and optimizations
+the function will be able to search deeper into the game producing a more certain outcome.
+
+\item Following the improvement in speed, parallel processing and threading will allow the search to
+execute on multiple processors simultaneously. This will improve the depth at which searches can operate.
+
+\item Improved Heuristics. The 4th heuristic that puts a higher weight on the opponents position versus the
+players position showed to have a marginal increase in winning percentage.
+
+\item Better Metrics and Analysis. In order to measure the increase from the previous two items, we need an
+accurate, statistically valid baseline. We will also need better visibility into the algorithms performance
+and the impact any changes have on the outcome. Metrics such as the \% of searches going to full-depth, and the
+average depth at timeout would go a long way in determining which changes are beneficial for the algorithm.
+\end{enumerate}
+
+
 \end{document}

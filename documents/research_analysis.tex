@@ -1,0 +1,110 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Journal Article
+% LaTeX Template
+% Version 1.3 (9/9/13)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Frits Wenneker (http://www.howtotex.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%----------------------------------------------------------------------------------------
+%       PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+\documentclass[paper=letter, fontsize=12pt]{article}
+\usepackage[english]{babel} % English language/hyphenation
+\usepackage[utf8]{inputenc}
+\usepackage{float}
+\usepackage{blindtext}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[sc]{mathpazo} % Use the Palatino font
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+\linespread{1.05} % Line spacing - Palatino needs more space between lines
+\usepackage{microtype} % Slightly tweak font spacing for aesthetics
+\usepackage[hmarginratio=1:1,top=32mm,columnsep=20pt]{geometry} % Document margins
+\usepackage{multicol} % Used for the two-column layout of the document
+%\usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption} % Custom captions under/above floats in tables or figures
+\usepackage{booktabs} % Horizontal rules in tables
+\usepackage{float} % Required for tables and figures in the multi-column environment - they need to be placed in specific locations with the [H] (e.g. \begin{table}[H])
+\usepackage{hyperref} % For hyperlinks in the PDF
+\usepackage{lettrine} % The lettrine is the first enlarged letter at the beginning of the text
+\usepackage{paralist} % Used for the compactitem environment which makes bullet points with less space between them
+\usepackage{abstract} % Allows abstract customization
+\renewcommand{\abstractnamefont}{\normalfont\bfseries} % Set the "Abstract" text to bold
+\renewcommand{\abstracttextfont}{\normalfont\small\itshape} % Set the abstract itself to small italic text
+\usepackage{titlesec} % Allows customization of titles
+
+\renewcommand\thesection{\Roman{section}} % Roman numerals for the sections
+\renewcommand\thesubsection{\Roman{subsection}} % Roman numerals for subsections
+
+\titleformat{\section}[block]{\large\scshape\centering}{\thesection.}{1em}{} % Change the look of the section titles
+\titleformat{\subsection}[block]{\large}{\thesubsection.}{1em}{} % Change the look of the section titles
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} % Create horizontal rule command with 1 argument of height
+
+%----------------------------------------------------------------------------------------
+%       TITLE SECTION
+%----------------------------------------------------------------------------------------
+\title{\vspace{-15mm}\fontsize{24pt}{10pt}\selectfont\textbf{Deep Blue: Research Review \cite{deepblue}}} % Article title
+\author{
+\large
+{\textsc{John Carpenter, PEng.}}\\[2mm]}
+\date{}
+
+%----------------------------------------------------------------------------------------
+\begin{document}
+\maketitle % Insert title
+\section{Introduction}
+
+The 1997 chess match Deep Blue v. Kasparov was arguably one of the most influential demonstrations of artificial intelligence ever shown. At 18, the chessmaster Kasparov routinely defeated
+the grandmasters before him with his wildly agressive and creative manner. His tactics and skill made him one of the best players to ever play chess, and he jumped at the
+opportunity to prove even the best computer couldn't defeat a grandmaster at chess.\newline
+
+In 1997 computers were little more than small calculators. They were functional at raw calculations but were never expected to be able to defeat a human opponent. Computers possesed no algorithm for creativity, deception
+or trickery. They simply ran algorithms. Kasparov would dictate the play and force the computer into situations which required elegance, not brute force to resolve. \newline
+
+However Deep Blue managed something no computer had done before and soundly defeated Kasparov in a series of matches widely followed by millions around the world. In its win Deep Blue was described as being more creative,
+and inventive compared to Kasparovs rigid approach. Which is ironic since, Deep Blue was for all purposes, simply a very smart algorithm. \newline
+
+\section{Building a House with Toothpicks}
+
+Deep Blue operated at a blistering 11 GFLOPs \cite{wikipedia} processing millions of moves per second, spread amoung hundreds of processors. It used specially designed chips and hardware designed solely to work through the problem of calculating the best move in chess. That would seem like an insurmoutable speed at that time but it should be noted the laptop this report has been created with can routinely calculate between 40-60 GFLOPs. What was far more interesting was the clever algorthms to determine the board state and evaluate positions\newline
+
+The Deep Blue architecture utilized a brute force quiescence search that implemented a number of very exact optimizations with respect to chess. Given the combinatorial complexity of chess, Deep Blue was rarely able to calculate out more than 6-8 moves ahead. This put a lot of dependence upon efficient calculations within the tree search and more importantly a precise board evaluation for each node.\newline
+
+For the search, Deep Blue utilized a Negamax\cite{negamax} with alpha-beta pruning algorithm. The Negamax algorithm is similar to the minimax algorithm, however instead of changing between the min and max of a set of nodes, Negamax assumes that a good player moves and a bad opponent moves are equally valued \[max(a,b)=-min(-a,-b) \]. This reduces the calculations to a single form and allows each layer to perform the same calculation.\newline
+
+Secondly, it utilizes a \textit{null window} search to speed the pruning in the alpha-beta phase. The null window sets a fixed value for alpha and beta to narrow the search when the game results are nearly certain. They mention that additional searches may be required if they are looking for exact values, but the speed performance for the null windows was sizable.
+
+Finally, they add a number of chess constraints that are particular to the game. These contraints limit searches where previous experience has shown that the position is not viable. Effectively pruning the tree before spending the time in calculating the value of its children.\newline
+
+\section{Teaching an Algorithm to Understand Chess}
+
+At the core of the Deep Blue algorithm is a very complicated evaluation model. The model attempts to "score" the current game position using a book of roughly 8000 chess positions and their advantages within the game. Those positions ranged from a single piece location to a full board configuration and the summation of those positions in the current board is the relative score of that position. The determination of these scores was a tedious effort involving teams of grandmasters and developers. Having a table of results in which to lookup the scores sped the search up significantly. The complexity of the search became effectively a linear problem.\newline
+
+Today this process of training with known datasets, and applying relative weights has become a well-known process in modern machine-learning algorithms. Deep Blues implementation shows the practical aspects of machine-learning can be applied to brute-force search algorithms quite effectively. Using a dictionary of succesful positions and weights as a heuristic is a effective and fast way to evaluate almost any position.
+
+\section{Conclusions}
+
+Deep Blue implemented a novel approach to the brute-force game agents methods by merging and optimizing learned results into it's model. This combination of both raw calculations and learned behaviour produced a masterful chess machine that was able to defeat on the strongest chess minds of our time. As a game agent, its search and evaluation model work surprisingly well and even exhibits "creative" behaviour.
+
+
+\begin{thebibliography}{99}
+\bibitem [1]{deepblue}
+Feng-hsiung Hsu, Murray S. Campbell, and A. Joseph Hoane, Jr.. 1995. \textit{Deep Blue system overview}. In Proceedings of the 9th international conference on Supercomputing (ICS '95). ACM, New York, NY, USA, 240-244.
+\bibitem [2]{wikipedia}
+\textit{Deep Blue (chess computer)}. (2017, February 21). Retrieved March 02, 2017, from https://en.wikipedia.org/wiki/Deep_Blue_(chess_computer)
+\bibitem [3]{negamax}
+\textit{Negamax}. (2016, November 13). In Wikipedia, The Free Encyclopedia. Retrieved 04:55, March 3, 2017, from https://en.wikipedia.org/w/index.php?title=Negamax&oldid=749294742
+
+\end{thebibliography}
+
+%----------------------------------------------------------------------------------------
+%\end{multicols}
+\end{document}

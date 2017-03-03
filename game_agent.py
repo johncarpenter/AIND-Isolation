@@ -75,8 +75,11 @@ def custom_score(game, player):
     #return (8 - float(player_moves_left)) - (8 - float(opponent_moves_left))
     # https://en.wikipedia.org/wiki/Knight's_tour#Warnsdorf.27s_rule
 
-
-    return float(player_moves_left) - 2*float(opponent_moves_left)
+#    return float(player_moves_left) - 2*float(opponent_moves_left)
+    if(player_moves_left >= 2):
+        return (8 - float(player_moves_left)) - (float(player_moves_left))
+    else:
+        return -1
 
 
 class CustomPlayer:

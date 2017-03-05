@@ -266,6 +266,27 @@ The model typically averaged 5-6\% higher win percentage although that is still 
 
 \subsection{Recommendations}
 
+The evaluation function in the \texttt{\detokenize{ID_Improved}} model provides a very strong opponent and does so efficiently with a minimum amount of processing required. The improvements on the model will be minimal but can be improved by reducing some of the dependence on the players position.\newline
+
+\textbf{Suggested Evaluation Model}\newline
+
+\begin{lstlisting}[language = python]
+  return float(player_moves_left) - 2*float(opponent_moves_left)
+\end{lstlisting}
+
+From Warnsdorf's rule, we know that the optimal route for a single player within the game is to choose the route with the fewest number of connecting nodes. However, within a competitive gameplay this does not always ensure a winning scenario. In fact, quite the opposite. Nearing the end of the game the player needs to optimize their moves remaining, while minimizing the opponents. The latter being much more important. The evaluation model we have chosen seeks to minimize the opponents movements as much as possible. Slightly more agressive than the \texttt{\detokenize{ID_Improved}} it tries to win the game without worrying too much about the players position.
+
+\begin{enumerate}
+\item For a single player the optimal move is to node with the fewest connections, therefore the number of player moves the player can reach at each node is relatively independent of its strength.
+
+\item Nearing the end game, the player should try to force the opponent into a trapped position. This can be done by eliminating the available moves by the opponent. The second term in the calculation \verb|(- 2*float(opponent_moves_left))| accounts for this.
+
+\item Even though the players movement is relatively independent from number of connecting nodes, during the final moves of the game the player needs to continue to move to positions that have connecting nodes. That is why the first term in the parameter (\verb|float(player_moves_left)|) is left in.
+\end{enumerate}
+
+
+\subsection{Future Work}
+
 The game playing agent was successful in competing in the simulated tournament against
 a small variety of simple opponents. However competing against a stronger opponent such as
 the \texttt{\detokenize{ID_Improved}} model the results are not as conclusive. Here are
@@ -286,6 +307,8 @@ accurate, statistically valid baseline. We will also need better visibility into
 and the impact any changes have on the outcome. Metrics such as the \% of searches going to full-depth, and the
 average depth at timeout would go a long way in determining which changes are beneficial for the algorithm.
 \end{enumerate}
+
+
 
 
 \end{document}

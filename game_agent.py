@@ -72,14 +72,14 @@ def custom_score(game, player):
     # https://en.wikipedia.org/wiki/Knight's_tour#Warnsdorf.27s_rule
 
     # heuristic function 4 - # based Warnsdorf's rule 2
-    #return (8 - float(player_moves_left)) - (8 - float(opponent_moves_left))
+        #if(player_moves_left >= 2):
+        #    return (8 - float(player_moves_left)) - (float(player_moves_left))
+        #else:
+        #    return -1
     # https://en.wikipedia.org/wiki/Knight's_tour#Warnsdorf.27s_rule
 
-#    return float(player_moves_left) - 2*float(opponent_moves_left)
-    if(player_moves_left >= 2):
-        return (8 - float(player_moves_left)) - (float(player_moves_left))
-    else:
-        return -1
+    # Chosen Heuristic
+    return float(player_moves_left) - 2*float(opponent_moves_left)
 
 
 class CustomPlayer:
